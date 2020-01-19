@@ -17,5 +17,7 @@ namespace InstaWebApi.Data
             IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)
         {
         }
+
+        public DbSet<InstaAccount> InstaAccounts { get; set; }
     }
 }

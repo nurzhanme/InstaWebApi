@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.EntityFrameworkCore;
 using InstaWebApi.Data;
 using InstaWebApi.Models;
+using InstaWebApi.Repository;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -35,6 +36,8 @@ namespace InstaWebApi
 
             services.AddIdentityServer()
                 .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
+
+            services.AddScoped<InstaAccountRepository>();
 
             services.AddAuthentication()
                 .AddIdentityServerJwt();
