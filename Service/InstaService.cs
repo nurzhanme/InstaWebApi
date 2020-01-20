@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using InstagramApiSharp.API;
 using InstagramApiSharp.API.Builder;
 using InstagramApiSharp.Classes;
-using InstagramApiSharp.Classes.SessionHandlers;
+using InstagramApiSharp.Classes.Models;
 using InstagramApiSharp.Logger;
 using InstaWebApi.Models;
 using InstaWebApi.Repository;
@@ -25,7 +25,7 @@ namespace InstaWebApi.Service
 
         private string GetChallengeCode(string username)
         {
-            return "sad";
+            return "sad"; //TODO make it real
         }
 
         private async Task<bool> Login(InstaAccount account)
@@ -116,21 +116,65 @@ namespace InstaWebApi.Service
         {
             var result = await _instaApi.CheckUsernameAsync(usernameToCheck);
 
-            return result.Value.Available;
+            return result.Succeeded && result.Value.Available;
         }
 
         public async Task<bool> Register(InstaAccount account)
         {
+            var checkEmail = await _instaApi.CheckEmailAsync(account.Email);
+
+            if (!checkEmail.Succeeded || !checkEmail.Value.Available)
+            {
+                throw new Exception(checkEmail.Info.Message); //TODO change to custom exception
+            }
+
             var result = await _instaApi.CreateNewAccountAsync(account.Username, account.Password, account.Email, account.Fisrtname);
 
-            return result.Value.AccountCreated;
+            return result.Succeeded && result.Value.AccountCreated;
         }
 
         public async Task<bool> EditAccount(InstaAccount account)
         {
             var result = await _instaApi.AccountProcessor.SetAccountPublicAsync();
 
-            return result.Value.IsPrivate;
+            return result.Succeeded && result.Value.IsPrivate;
+        }
+
+        public async Task<(bool, string)> PostPhoto(string imageUrl, string caption)
+        {
+            var image = new InstaImageUpload(imageUrl);
+
+            var result = await _instaApi.MediaProcessor.UploadPhotoAsync(image, caption);
+
+            return (result.Succeeded, result.Succeeded ? result.Value.Pk : result.Info.Message);
+        }
+        
+        public async Task<(bool, string)> PostVideo(string videoUrl, string thumbnailUrl, string caption)
+        {
+            var video = new InstaVideoUpload
+            {
+                Video = new InstaVideo(videoUrl, 0, 0),
+                VideoThumbnail = new InstaImage(thumbnailUrl, 0, 0)
+            };
+
+            var result = await _instaApi.MediaProcessor.UploadVideoAsync(video, caption);
+
+            return (result.Succeeded, result.Succeeded ? result.Value.Pk : result.Info.Message);
+        }
+
+        public async Task<(bool, string)> PostAlbum(List<string> imageUrls, List<(string, string)> videoUrls, string caption)
+        {
+            var images = imageUrls.Select(im => new InstaImageUpload(im)).ToArray();
+
+            var videos = videoUrls.Select(v =>
+                    new InstaVideoUpload(new InstaVideo(v.Item1, 0, 0), 
+                        new InstaImage(v.Item2, 0, 0)))
+                .ToArray();
+            
+            var result = await _instaApi.MediaProcessor.UploadAlbumAsync(images, videos, caption);
+
+            return (result.Succeeded, result.Succeeded ? result.Value.Pk : result.Info.Message);
+
         }
     }
 }
