@@ -103,7 +103,7 @@ namespace InstaWebApi.Service
                 if (result)
                 {
                     account.SessionData = _instaApi.GetStateDataAsString();
-                    var a = await _repository.Update(account);
+                    var accountUpdate = await _repository.Update(account);
 
                     return result;
                 }
