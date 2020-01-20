@@ -25,17 +25,12 @@ namespace InstaWebApi.Service
 
         private string GetChallengeCode(string username)
         {
-            return "sad"; //TODO make it real
+            return "sad";
         }
 
         private async Task<bool> Login(InstaAccount account)
         {
             var delay = RequestDelay.FromSeconds(2, 2);
-
-            // create new InstaApi instance using Builder
-            _instaApi.LoadStateDataFromString(account.SessionData);
-
-            if (_instaApi.IsUserAuthenticated) return true;
 
             _instaApi = InstaApiBuilder.CreateBuilder()
                 .SetUser(new UserSessionData
@@ -101,15 +96,29 @@ namespace InstaWebApi.Service
         {
             var account = await _repository.Get(username);
 
-            var result = await Login(account);
-
-            if (result)
+            if (string.IsNullOrWhiteSpace(account?.SessionData))
             {
-                account.SessionData = _instaApi.GetStateDataAsString();
-                var a = await _repository.Update(account);
+                var result = await Login(account);
+
+                if (result)
+                {
+                    account.SessionData = _instaApi.GetStateDataAsString();
+                    var a = await _repository.Update(account);
+
+                    return result;
+                }
             }
 
-            return result;
+            _instaApi = InstaApiBuilder.CreateBuilder()
+                .SetUser(UserSessionData.Empty)
+                .SetRequestDelay(RequestDelay.FromSeconds(2, 2))
+                .Build();
+
+            _instaApi.LoadStateDataFromString(account.SessionData);
+
+            var currentUser = await _instaApi.GetCurrentUserAsync();
+
+            return currentUser.Succeeded;
         }
 
         public async Task<bool> CheckUsername(string usernameToCheck)
