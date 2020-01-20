@@ -1,2 +1,2 @@
 # InstaWebApi
-An asp.net core web api Private Instagram API for .NET
+An asp.net core web api Private Instagram API
