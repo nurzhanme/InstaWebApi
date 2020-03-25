@@ -12,6 +12,7 @@ using InstaWebApi.Repository;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using InstaWebApi.Service;
 
 namespace InstaWebApi
 {
@@ -38,6 +39,7 @@ namespace InstaWebApi
                 .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
 
             services.AddScoped<InstaAccountRepository>();
+            services.AddScoped<InstaService>();
 
             services.AddAuthentication()
                 .AddIdentityServerJwt();

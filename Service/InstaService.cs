@@ -128,6 +128,13 @@ namespace InstaWebApi.Service
             return result.Succeeded && result.Value.Available;
         }
 
+        public async Task<bool> CheckEmail(string email)
+        {
+            var result = await _instaApi.CheckEmailAsync(email);
+
+            return result.Succeeded && result.Value.Available;
+        }
+
         public async Task<bool> Register(InstaAccount account)
         {
             var checkEmail = await _instaApi.CheckEmailAsync(account.Email);
